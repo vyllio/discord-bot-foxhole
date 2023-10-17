@@ -9,6 +9,7 @@ const {
 } = require('discord.js');
 const mongoose = require('mongoose');
 const getFiles = require('./utils/getFiles');
+const { Server } = require('./data/models.js');
 
 /** ********************************************************************/
 // Connect to MongoDB
@@ -63,6 +64,7 @@ client.triggers = new Collection();
 client.languages = new Collection();
 client.traductions = new Collection();
 client.sessions = new Collection();
+client.logs = new Collection();
 
 /** ********************************************************************/
 // Registration of Message-Based Legacy Commands.
@@ -156,6 +158,22 @@ getFiles('./triggers', (trigger) => {
 
 getFiles('./languages', (language) => {
 	client.languages.set(language.code, language);
+
+	Server.find()
+		.then((servers) => {
+			servers.forEach((server) => {
+				client.traductions.set(server.guild_id, server.lang || 'en');
+			});
+		});
+});
+
+/** ********************************************************************/
+
+// Load all logs
+
+getFiles('./var/logs', (log) => {
+	const logName = log.split('.')[0];
+	client.logs.set(logName);
 });
 
 client.login(process.env.TOKEN);
